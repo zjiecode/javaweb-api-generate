@@ -1,0 +1,45 @@
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'com.novoda.bintray-release' //用户发布到bintray
+apply plugin: 'maven'//maven插件，用于发布到本地仓库调试
+
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.novoda:bintray-release:0.8.1"
+    }
+}
+
+//用于发布到本地仓库调试的配置
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri('../repo'))
+            pom.groupId = 'com.zjiecode' // 组名
+            pom.artifactId = 'javaweb-api-generate' // 插件名
+            pom.version = '0.0.4' // 版本号
+        }
+    }
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+dependencies {
+    compile 'mysql:mysql-connector-java:5.1.44'//连接数据库
+    compile 'com.squareup:javapoet:1.10.0'//生成java源文件
+}
+
+//发布bintray配置
+publish {
+    userOrg = 'zjiecode'
+    groupId = 'com.zjiecode'
+    artifactId = 'javaweb-api-generate'
+    publishVersion = '0.0.4'
+    desc = '一个可以根据数据库结构，快速生成基于spring boot常用API接口的gradle插件。生成的工程是idea+gradle+springboot+mysql+validation-api框架结构的工程。'
+    website = 'https://github.com/zjiecode/javaweb-api-generate'
+    licences = ['Apache-2.0']
+}
