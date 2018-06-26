@@ -48,7 +48,7 @@ public class GenerateTask extends DefaultTask {
 
     //查询数据库存在的表
     private void getTable() throws SQLException {
-        String sql = "select table_name from information_schema.tables where table_schema='spring_boot_demo'";
+        String sql = "select table_name from information_schema.tables where table_schema='"+config.getDbName()+"'";
         PreparedStatement ps = con.prepareStatement(sql);
         //3.ResultSet类，用来存放获取的结果集！！
         ResultSet rs = ps.executeQuery();
