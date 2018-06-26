@@ -42,13 +42,13 @@ public class GenerateTask extends DefaultTask {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new GenerateException("连接数据库失败， 请检查连接");
+            throw new GenerateException("生成代码失败");
         }
     }
 
     //查询数据库存在的表
     private void getTable() throws SQLException {
-        String sql = "select table_name from information_schema.tables where table_schema='"+config.getDbName()+"'";
+        String sql = "select table_name from information_schema.tables where table_schema='"+config.getDbName()+"'  and table_type ='BASE TABLE'";
         PreparedStatement ps = con.prepareStatement(sql);
         //3.ResultSet类，用来存放获取的结果集！！
         ResultSet rs = ps.executeQuery();
