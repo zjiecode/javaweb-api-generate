@@ -6,7 +6,7 @@
 ![PRs-welcome](https://img.shields.io/badge/PRs-welcome-green.svg?longCache=true&style=flat)
 [![license](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Build Status](https://travis-ci.org/zjiecode/javaweb-api-generate.svg?branch=master)](https://travis-ci.org/zjiecode/javaweb-api-generate)
-![version](https://img.shields.io/badge/version-0.0.6-brightgreen.svg?longCache=true&style=flat)
+![version](https://img.shields.io/badge/version-0.0.7-brightgreen.svg?longCache=true&style=flat)
 
 ### 简介
 

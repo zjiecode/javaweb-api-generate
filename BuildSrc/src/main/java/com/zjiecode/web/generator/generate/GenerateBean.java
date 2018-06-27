@@ -7,6 +7,7 @@ import com.zjiecode.web.generator.utils.ClassNameUtil;
 import com.zjiecode.web.generator.utils.FieldTypeUtil;
 import com.zjiecode.web.generator.utils.PathUtil;
 
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.lang.reflect.Type;

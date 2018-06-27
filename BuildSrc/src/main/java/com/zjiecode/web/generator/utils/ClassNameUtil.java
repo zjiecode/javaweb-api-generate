@@ -9,7 +9,14 @@ public class ClassNameUtil {
      */
     public static String className(String name) {
         if (name != null) {
-            return name.substring(0, 1).toUpperCase() + name.substring(1);
+            String[] words = name.split("_");
+            StringBuilder finalClassName = new StringBuilder();
+            if (words.length > 0) {
+                for (String s : words) {
+                    finalClassName.append(s.substring(0, 1).toUpperCase() + s.substring(1));
+                }
+            }
+            name = finalClassName.toString();
         }
         return name;
     }
