@@ -56,6 +56,7 @@ public class GenerateTask extends DefaultTask {
             String table = rs.getString("table_name");
             getTableDetail(table);
         }
+        generateFixFile();
     }
 
     //获取表结构
@@ -110,7 +111,6 @@ public class GenerateTask extends DefaultTask {
         generateController.generate();
         generateController.out();
 
-        generateFixFile();
     }
 
 
