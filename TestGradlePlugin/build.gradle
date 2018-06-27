@@ -13,7 +13,7 @@ config {
 //以上是生成的配置信息，生成以后可以删除
 buildscript {
     repositories {
-        //使用本地仓库调试
+//        使用本地仓库调试
 //        maven{
 //            url  uri("../repo")
 //        }
