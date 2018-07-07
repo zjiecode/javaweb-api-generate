@@ -37,8 +37,75 @@ fi
 echo "解压模版完成"
 
 cd "${project}"
+
 #调用生成的脚本
-sh generateCode.sh
+
+PROPERTY_FILE="build.gradle" #配置文件
+
+echo "请输入数据库地址和端口(127.0.0.1)："
+read dbHost
+if [ -z "${dbHost}" ]; then
+    dbHost="127.0.0.1"
+fi
+echo "请输入数据库地址和端口(3306)："
+read dbPort
+if [ -z "${dbPort}" ]; then
+    dbPort="3306"
+fi
+echo "请输入数据库名字："
+read dbName
+if [ -z "${dbName}" ]; then
+    echo "数据库名字不能为空"
+    exit 1;
+fi
+echo "请输入数据库登陆用户名："
+read dbUser
+if [ -z "${dbUser}" ]; then
+    echo "数据库用户名不能为空"
+    exit 1;
+fi
+
+echo "请输入数据库登陆用户密码："
+read dbPassword
+if [ -z "${dbPassword}" ]; then
+    echo "数据库密码不能为空"
+    exit 1;
+fi
+echo "请输入生成代码包名："
+read basePackage
+if [ -z "${basePackage}" ]; then
+    echo "基础包名不能为空"
+    exit 1;
+fi
+
+# 设置值，key，value
+function setValue(){
+    PROPERTY_LINE=`grep  $1 ${PROPERTY_FILE}`
+    if [ -z "${PROPERTY_LINE}" ]; then
+        echo "配置文件 ${PROPERTY_FILE} 中不存在属性 $1"
+        exit 1
+    else
+        NEW_PROPERTY_LINE="\t$1 '$2'"
+        sed -i -e "s/${PROPERTY_LINE}/${NEW_PROPERTY_LINE}/" ${PROPERTY_FILE}
+    fi
+}
+echo "正在配置文件..."
+
+setValue "dbHost" "${dbHost}"
+setValue "dbPort" "${dbPort}"
+setValue "dbName" "${dbName}"
+setValue "dbPassword" "${dbPassword}"
+setValue "dbUser" "${dbUser}"
+setValue "basePackage" "${basePackage}"
+
+echo "配置文件完成"
+
+# 替换gradle配置
+echo "开始生成代码"
+./gradlew generateCode
+echo "生成完毕"
+
+
 if [ $? -ne 0 ];then
     echo "生成错误"
     cd ..
@@ -50,6 +117,7 @@ path=`pwd`
 cd ..
 echo "清理资源"
 rm "${tempFileName}"
+rm setup.sh
 
 echo "\033[32m SUCCESS \033[0m"
 echo "工程地址：${path}"
