@@ -23,7 +23,7 @@ public class FileResList {
         javaList.add(new FileResBean("/java/result/ResultCode.java", "base/result/ResultCode.java"));
         javaList.add(new FileResBean("/java/AppWebMvcConfigurer.java", "base/AppWebMvcConfigurer.java"));
         javaList.add(new FileResBean("/java/Pagination.java", "base/Pagination.java"));
-        javaList.add(new FileResBean("/java/JavawebApplication.java", "JavawebApplication.java"));
+        javaList.add(new FileResBean("/java/JavaWebApplication.java", "JavaWebApplication.java"));
     }
 
     public static FileResList getInstance() {

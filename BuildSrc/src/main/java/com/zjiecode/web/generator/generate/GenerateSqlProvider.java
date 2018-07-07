@@ -2,7 +2,7 @@ package com.zjiecode.web.generator.generate;
 
 import com.squareup.javapoet.*;
 import com.zjiecode.web.generator.bean.FieldBean;
-import com.zjiecode.web.generator.utils.ClassNameUtil;
+import com.zjiecode.web.generator.utils.NameUtil;
 
 import javax.lang.model.element.Modifier;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
 public class GenerateSqlProvider extends GenerateBase {
     public GenerateSqlProvider(ClassName dependClass, String table, List<FieldBean> fields, String basePackage) {
         super(dependClass, table, fields, basePackage,
-                TypeSpec.classBuilder(ClassNameUtil.className(table) + "SqlProvider").addModifiers(Modifier.PUBLIC),
+                TypeSpec.classBuilder(NameUtil.className(table) + "SqlProvider").addModifiers(Modifier.PUBLIC),
                 "SqlProvider");
     }
 
@@ -25,11 +25,11 @@ public class GenerateSqlProvider extends GenerateBase {
         updateBuilder.returns(String.class);
         updateBuilder.addStatement("$T sb = new $T()", StringBuilder.class, StringBuilder.class);
         fields.stream().forEach(field -> {
-            updateBuilder.beginControlFlow("if (null!=$L.get$L())", table, ClassNameUtil.className(field.getName()))
+            updateBuilder.beginControlFlow("if (null!=$L.get$L())", table, NameUtil.className(field.getName()))
                     .addStatement("sb.append(\",$L = #{$L}\")", field.getName(), field.getName())
                     .endControlFlow();
         });
-        ClassName BizException = ClassName.bestGuess(srcPackage.substring(0, srcPackage.lastIndexOf(".")) + ".base.exception.BizException");
+        ClassName BizException = ClassName.bestGuess(basePackage + ".base.exception.BizException");
         updateBuilder.beginControlFlow("if (sb.length() == 0)")
                 .addStatement(" throw new $T(\"没有需要更新的字段\")", BizException)
                 .endControlFlow();

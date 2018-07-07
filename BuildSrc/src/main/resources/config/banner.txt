@@ -1,2 +1,7 @@
 
 ===============系统启动中=================
+
+本系统使用javaweb-api-generate生成。
+欢迎访问github，提供帮助或者建议：https://github.com/zjiecode/javaweb-api-generate
+
+===============系统启动中=================

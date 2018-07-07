@@ -2,7 +2,7 @@ package com.zjiecode.web.generator.generate;
 
 import com.squareup.javapoet.*;
 import com.zjiecode.web.generator.bean.FieldBean;
-import com.zjiecode.web.generator.utils.ClassNameUtil;
+import com.zjiecode.web.generator.utils.NameUtil;
 
 import javax.lang.model.element.Modifier;
 import java.util.List;
@@ -15,7 +15,7 @@ public class GenerateService extends GenerateBase {
 
     public GenerateService(ClassName dependClass, String table, List<FieldBean> fields, String basePackage) {
         super(dependClass, table, fields, basePackage,
-                TypeSpec.classBuilder(ClassNameUtil.className(table) + "Service").addModifiers(Modifier.PUBLIC)
+                TypeSpec.classBuilder(NameUtil.className(table) + "Service").addModifiers(Modifier.PUBLIC)
                         .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess("org.springframework.stereotype.Service")).build())
                 , "Service");
     }

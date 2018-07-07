@@ -48,7 +48,7 @@ public class GenerateTask extends DefaultTask {
 
     //查询数据库存在的表
     private void getTable() throws SQLException {
-        String sql = "select table_name from information_schema.tables where table_schema='"+config.getDbName()+"'  and table_type ='BASE TABLE'";
+        String sql = "select table_name from information_schema.tables where table_schema='" + config.getDbName() + "'  and table_type ='BASE TABLE'";
         PreparedStatement ps = con.prepareStatement(sql);
         //3.ResultSet类，用来存放获取的结果集！！
         ResultSet rs = ps.executeQuery();
@@ -76,16 +76,12 @@ public class GenerateTask extends DefaultTask {
             int length = rs.getInt("length");
             fields.add(new FieldBean(col, comment, type, length, "NO".equalsIgnoreCase(canNull), "PRI".equalsIgnoreCase(columnKey), "auto_increment".equalsIgnoreCase(extra)));
         }
+        //生成的文件，放在biz包里面
         generate(table, fields, config.getBasePackage());
     }
 
     //生成代码文件
     private void generate(String table, List<FieldBean> fields, String srcPackage) {
-        //判断文件夹不存在，就先生成项目文件夹
-        File packageDir = new File(PathUtil.SRC_ROOT_DIR, PathUtil.package2Path(config.getBasePackage()));
-        if (!packageDir.exists()) {
-            packageDir.mkdirs();
-        }
 
         //生成bean
         GenerateBean generateBean = new GenerateBean(table, fields, srcPackage);
@@ -118,6 +114,7 @@ public class GenerateTask extends DefaultTask {
      * 生成固定的文件
      */
     private void generateFixFile() {
+        //拷贝java文件
         List<FileResBean> javaList = FileResList.getInstance().getJavaList();
         javaList.stream().forEach(file -> {
             try {
@@ -131,7 +128,9 @@ public class GenerateTask extends DefaultTask {
             }
         });
         System.out.println("拷贝脚手架java文件完成");
+        //拷贝资源文件
         List<FileResBean> resList = FileResList.getInstance().getResList();
+
         resList.stream().forEach(file -> {
             try {
                 //根据具体的配置生成输出路径
@@ -143,10 +142,46 @@ public class GenerateTask extends DefaultTask {
             }
         });
         System.out.println("拷贝基础配置文件完成");
+        //修改数据库配置
+        resList.stream().forEach(file -> {
+            try {
+                if (file.getInUrl().endsWith("-dev.properties")) {
+                    //通过流读取数据库配置文件
+                    String filePath = PathUtil.RES_ROOT_DIR + File.separator + file.getOutUrl();
+                    File dbFile = new File(filePath);
+                    FileInputStream inputStream = new FileInputStream(dbFile);
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int len = 0;
+                    while ((len = inputStream.read(buffer)) != -1) {
+                        out.write(buffer, 0, len);
+                    }
+                    inputStream.close();
+                    //替换为正确的数据库配置
+                    String dbConfig = new String(out.toByteArray());
+                    dbConfig = dbConfig.replace("${host}", config.getDbHost());
+                    dbConfig = dbConfig.replace("${port}", config.getDbPort());
+                    dbConfig = dbConfig.replace("${dbName}", config.getDbName());
+                    dbConfig = dbConfig.replace("${user}", config.getDbUser());
+                    dbConfig = dbConfig.replace("${pwd}", config.getDbPassword());
+                    //把数据库配置写到文件里面
+                    dbFile.delete();
+                    dbFile.createNewFile();
+                    FileOutputStream dbFileOut = new FileOutputStream(dbFile);
+                    dbFileOut.write(dbConfig.getBytes());
+                    dbFileOut.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("修改开发环境配置文件[" + file.getOutUrl() + "]出错");
+            }
+        });
+
+
     }
 
     /**
-     * 直接拷贝一些基础的脚手架文件
+     * 复制文件
      */
     private void copyFile(String in, String out) throws IOException {
         System.out.println("拷贝文件:" + out);

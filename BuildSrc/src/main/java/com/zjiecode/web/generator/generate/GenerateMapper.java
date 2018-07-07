@@ -3,7 +3,7 @@ package com.zjiecode.web.generator.generate;
 import com.squareup.javapoet.*;
 import com.zjiecode.web.generator.GenerateException;
 import com.zjiecode.web.generator.bean.FieldBean;
-import com.zjiecode.web.generator.utils.ClassNameUtil;
+import com.zjiecode.web.generator.utils.NameUtil;
 
 import javax.lang.model.element.Modifier;
 import java.util.List;
@@ -16,7 +16,7 @@ public class GenerateMapper extends GenerateBase {
 
     public GenerateMapper(ClassName dependClass, String table, List<FieldBean> fields, String basePackage) {
         super(dependClass, table, fields, basePackage,
-                TypeSpec.interfaceBuilder(ClassNameUtil.className(table) + "Mapper").addModifiers(Modifier.PUBLIC)
+                TypeSpec.interfaceBuilder(NameUtil.className(table) + "Mapper").addModifiers(Modifier.PUBLIC)
                         .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess("org.apache.ibatis.annotations.Mapper")).build())
                 , "Mapper");
     }

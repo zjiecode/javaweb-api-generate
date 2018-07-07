@@ -4,10 +4,10 @@ config {
     dbDriver 'com.mysql.jdbc.Driver'
     dbHost '127.0.0.1'
     dbPort '3306'
-    dbName 'spring_boot_demo'
+    dbName 'pangu-db-dev'
     dbUser 'root'
     dbPassword '123456'
-    basePackage 'com.zjiecode.web.api'
+    basePackage 'com.smjcco.pangu.api'
 }
 
 //以上是生成的配置信息，生成以后可以删除

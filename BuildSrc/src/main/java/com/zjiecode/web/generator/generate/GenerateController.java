@@ -2,7 +2,7 @@ package com.zjiecode.web.generator.generate;
 
 import com.squareup.javapoet.*;
 import com.zjiecode.web.generator.bean.FieldBean;
-import com.zjiecode.web.generator.utils.ClassNameUtil;
+import com.zjiecode.web.generator.utils.NameUtil;
 
 import javax.lang.model.element.Modifier;
 import java.util.List;
@@ -17,7 +17,7 @@ public class GenerateController extends GenerateBase {
 
     public GenerateController(ClassName dependClass, String table, List<FieldBean> fields, String basePackage) {
         super(dependClass, table, fields, basePackage,
-                TypeSpec.classBuilder(ClassNameUtil.className(table) + "Controller").addModifiers(Modifier.PUBLIC)
+                TypeSpec.classBuilder(NameUtil.className(table) + "Controller").addModifiers(Modifier.PUBLIC)
                         .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.RestController")).build())
                         .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.RequestMapping"))
                                 .addMember("value", "\"/$L\"", table).build())

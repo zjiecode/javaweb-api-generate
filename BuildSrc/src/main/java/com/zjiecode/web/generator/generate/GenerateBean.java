@@ -3,13 +3,10 @@ package com.zjiecode.web.generator.generate;
 import com.squareup.javapoet.*;
 import com.zjiecode.web.generator.GenerateException;
 import com.zjiecode.web.generator.bean.FieldBean;
-import com.zjiecode.web.generator.utils.ClassNameUtil;
+import com.zjiecode.web.generator.utils.NameUtil;
 import com.zjiecode.web.generator.utils.FieldTypeUtil;
-import com.zjiecode.web.generator.utils.PathUtil;
 
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Modifier;
-import java.io.File;
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -20,7 +17,7 @@ public class GenerateBean extends GenerateBase {
 
     public GenerateBean(String table, List<FieldBean> fields, String basePackage) {
         super(table, fields, basePackage,
-                TypeSpec.classBuilder(ClassNameUtil.className(table)).addModifiers(Modifier.PUBLIC),
+                TypeSpec.classBuilder(NameUtil.className(table)).addModifiers(Modifier.PUBLIC),
                 "Bean");
     }
 
@@ -31,12 +28,13 @@ public class GenerateBean extends GenerateBase {
         fields.stream().forEach(field -> {
             Object type = FieldTypeUtil.getType(field);
             FieldSpec.Builder fieldBuilder;
+            String fieldName = NameUtil.fieldName(field.getName());
             if (type instanceof TypeName) {
-                fieldBuilder = FieldSpec.builder((TypeName) type, field.getName(), Modifier.PRIVATE);
+                fieldBuilder = FieldSpec.builder((TypeName) type, fieldName, Modifier.PRIVATE);
             } else if (type instanceof Type) {
-                fieldBuilder = FieldSpec.builder((Type) type, field.getName(), Modifier.PRIVATE);
+                fieldBuilder = FieldSpec.builder((Type) type, fieldName, Modifier.PRIVATE);
             } else {
-                throw new GenerateException("不支持的数据库类型");
+                throw new GenerateException("不支持的数据类型");
             }
 
             //ID的注解
@@ -67,13 +65,13 @@ public class GenerateBean extends GenerateBase {
      */
     public GenerateBean addField(FieldSpec fieldSpec) {
         classBuilder.addField(fieldSpec);
-        MethodSpec setter = MethodSpec.methodBuilder("set" + ClassNameUtil.className(fieldSpec.name))
+        MethodSpec setter = MethodSpec.methodBuilder("set" + NameUtil.className(fieldSpec.name))
                 .returns(TypeName.VOID)
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("this.$L = $L", fieldSpec.name, fieldSpec.name)
                 .addParameter(ParameterSpec.builder(fieldSpec.type, fieldSpec.name).build()).build();
         classBuilder.addMethod(setter);
-        MethodSpec getter = MethodSpec.methodBuilder("get" + ClassNameUtil.className(fieldSpec.name))
+        MethodSpec getter = MethodSpec.methodBuilder("get" + NameUtil.className(fieldSpec.name))
                 .returns(fieldSpec.type)
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("return this.$L", fieldSpec.name).build();
