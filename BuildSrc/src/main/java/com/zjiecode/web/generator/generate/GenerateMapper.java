@@ -13,12 +13,23 @@ import java.util.List;
  */
 public class GenerateMapper extends GenerateBase {
     private TypeName sqlProviderClassName;
+    private String fieldMapping;
 
     public GenerateMapper(ClassName dependClass, String table, List<FieldBean> fields, String basePackage) {
         super(dependClass, table, fields, basePackage,
                 TypeSpec.interfaceBuilder(NameUtil.className(table) + "Mapper").addModifiers(Modifier.PUBLIC)
                         .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess("org.apache.ibatis.annotations.Mapper")).build())
                 , "Mapper");
+        //生成db field  到bean的名字映射
+        StringBuilder sbKey = new StringBuilder();
+        fields.stream().forEach(field -> {
+            sbKey.append("`" + field.getName() + "`");
+            sbKey.append(" AS ");
+            sbKey.append(NameUtil.fieldName(field.getName()));
+            sbKey.append(",");
+        });
+        sbKey.deleteCharAt(sbKey.length() - 1);
+        fieldMapping = sbKey.toString();
     }
 
     public void setSqlProviderClassName(TypeName sqlProviderClassName) {
@@ -37,6 +48,18 @@ public class GenerateMapper extends GenerateBase {
         return this;
     }
 
+    private String getFieldMapping() {
+        StringBuilder sbKey = new StringBuilder();
+        fields.stream().forEach(field -> {
+            sbKey.append("`" + field.getName() + "`");
+            sbKey.append(" AS ");
+            sbKey.append(NameUtil.fieldName(field.getName()));
+            sbKey.append(",");
+        });
+        sbKey.deleteCharAt(sbKey.length() - 1);
+        return sbKey.toString();
+    }
+
     //生成插入数据的接口
     private void insertMethod() {
         MethodSpec.Builder insertBuilder = MethodSpec.methodBuilder("insert");
@@ -46,7 +69,7 @@ public class GenerateMapper extends GenerateBase {
         StringBuilder sbKey = new StringBuilder();
         StringBuilder sbValue = new StringBuilder();
         fields.stream().forEach(field -> {
-            sbKey.append(field.getName()).append(",");
+            sbKey.append("`" + field.getName() + "`").append(",");
             sbValue.append("#{").append(field.getName()).append("}").append(",");
         });
         if (sbKey.length() <= 0) {
@@ -98,7 +121,7 @@ public class GenerateMapper extends GenerateBase {
         builder.addParameter(Integer.class, "id");
         builder.returns(beanClassName);
         AnnotationSpec.Builder anno = AnnotationSpec.builder(ClassName.bestGuess("org.apache.ibatis.annotations.Select"));
-        anno.addMember("value", "\"SELECT * FROM `$L` WHERE id = #{id}\"", table);
+        anno.addMember("value", "\"SELECT $L FROM `$L` WHERE id = #{id}\"", fieldMapping, table);
         builder.addAnnotation(anno.build());
         builder.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
         classBuilder.addMethod(builder.build());
@@ -109,7 +132,7 @@ public class GenerateMapper extends GenerateBase {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("findAll");
         builder.returns(ParameterizedTypeName.get(ClassName.get(List.class), beanClassName));
         AnnotationSpec.Builder anno = AnnotationSpec.builder(ClassName.bestGuess("org.apache.ibatis.annotations.Select"));
-        anno.addMember("value", "\"SELECT * FROM `$L`\"", table);
+        anno.addMember("value", "\"SELECT $L FROM `$L`\"", fieldMapping, table);
         builder.addAnnotation(anno.build());
         builder.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
         classBuilder.addMethod(builder.build());
@@ -120,7 +143,7 @@ public class GenerateMapper extends GenerateBase {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("findAllByPage");
         builder.returns(ParameterizedTypeName.get(ClassName.get(List.class), beanClassName));
         AnnotationSpec.Builder anno = AnnotationSpec.builder(ClassName.bestGuess("org.apache.ibatis.annotations.Select"));
-        anno.addMember("value", "\"SELECT * FROM `$L` limit #{param1},#{param2}\"", table);
+        anno.addMember("value", "\"SELECT $L FROM `$L` limit #{param1},#{param2}\"", fieldMapping, table);
         builder.addAnnotation(anno.build());
         builder.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
         builder.addParameter(ParameterSpec.builder(Integer.class, "offset").build());
