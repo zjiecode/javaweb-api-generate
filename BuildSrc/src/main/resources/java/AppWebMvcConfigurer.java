@@ -107,49 +107,45 @@ public class AppWebMvcConfigurer implements WebMvcConfigurer {
 
     @Override
     public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
-        resolvers.add(new HandlerExceptionResolver() {
-            @Override
-            public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-                Result result;
-                if (ex instanceof BizException) {
-                    //业务异常,不需要打印堆栈
-                    result = new Result(((BizException) ex).getResultCode(), ex.getMessage());
-                    responseResult(response, result);
-                    logger.warn(result.toString());
-                    return new ModelAndView();
-                } else if (ex instanceof NoHandlerFoundException || ex instanceof HttpRequestMethodNotSupportedException) {
-                    //不是服务器的异常,不需要打印堆栈
-                    result = new Result(ResultCode.NOT_FOUND, "接口[(" + request.getMethod() + ")" + request.getRequestURI() + "]不存在");
-                    logger.warn(result.toString());
-                    responseResult(response, result);
-                    return new ModelAndView();
-                } else if (ex instanceof BindException) {
-                    //参数不合法,不需要打印堆栈
-                    List<ObjectError> errors = ((BindException) ex).getAllErrors();
-                    if (!errors.isEmpty()) {
-                        result = new Result(ResultCode.BIZ_FAIL, errors.get(0).getDefaultMessage());
-                    } else {
-                        result = new Result(ResultCode.BIZ_FAIL, "数据验证错误");
-                    }
-                    logger.warn(result.toString());
-                    responseResult(response, result);
-                    return new ModelAndView();
-                }
-
-                if (ex instanceof AppException) {
-                    result = new Result(((BizException) ex).getResultCode(), ex.getMessage());
-                    responseResult(response, result);
-                } else if (ex instanceof ServletException) {
-                    result = new Result(ResultCode.BIZ_FAIL, ex.getMessage());
-                    responseResult(response, result);
-                } else {
-                    String message = String.format("接口 [%s] 出现异常，异常摘要：%s", request.getRequestURI(), ex.getMessage());
-                    result = new Result(ResultCode.INTERNAL_SERVER_ERROR, message);
-                    responseResult(response, result);
-                }
+        resolvers.add((request, response, handler, ex) -> {
+            Result result;
+            if (ex instanceof BizException) {
+                //业务异常,不需要打印堆栈
+                result = new Result(((BizException) ex).getResultCode(), ex.getMessage());
+                responseResult(response, result);
+                logger.warn(result.toString());
+            } else if (ex instanceof AppException) {
+                //应用异常
+                result = new Result(((AppException) ex).getResultCode(), ex.getMessage());
+                responseResult(response, result);
                 logger.error(result.toString(), ex);
-                return new ModelAndView();
+            } else if (ex instanceof NoHandlerFoundException || ex instanceof HttpRequestMethodNotSupportedException) {
+                //不是服务器的异常,不需要打印堆栈
+                result = new Result(ResultCode.NOT_FOUND, "接口[(" + request.getMethod() + ")" + request.getRequestURI() + "]不存在");
+                responseResult(response, result);
+                logger.warn(result.toString());
+            } else if (ex instanceof BindException) {
+                //参数不合法
+                List<ObjectError> errors = ((BindException) ex).getAllErrors();
+                if (!errors.isEmpty()) {
+                    result = new Result(ResultCode.BIZ_FAIL, errors.get(0).getDefaultMessage());
+                } else {
+                    result = new Result(ResultCode.BIZ_FAIL, "数据验证错误");
+                }
+                responseResult(response, result);
+                logger.warn(result.toString());
+            } else if (ex instanceof ServletException) {
+                result = new Result(ResultCode.INTERNAL_SERVER_ERROR, ex.getMessage());
+                responseResult(response, result);
+                logger.error(result.toString(), ex);
+            } else {
+                //其他错误
+                String message = String.format("接口 [%s] 出现异常，异常摘要：%s", request.getRequestURI(), ex.getMessage());
+                result = new Result(ResultCode.INTERNAL_SERVER_ERROR, message);
+                responseResult(response, result);
+                logger.error(result.toString(), ex);
             }
+            return new ModelAndView();
         });
     }
 
