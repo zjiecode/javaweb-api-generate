@@ -26,7 +26,7 @@ public class GenerateSqlProvider extends GenerateBase {
         updateBuilder.addStatement("$T sb = new $T()", StringBuilder.class, StringBuilder.class);
         fields.stream().forEach(field -> {
             updateBuilder.beginControlFlow("if (null!=$L.get$L())", table, NameUtil.className(field.getName()))
-                    .addStatement("sb.append(\",$L = #{$L}\")", field.getName(), field.getName())
+                    .addStatement("sb.append(\",$L = #{$L}\")", field.getName(), NameUtil.fieldName(field.getName()))
                     .endControlFlow();
         });
         ClassName BizException = ClassName.bestGuess(basePackage + ".base.exception.BizException");

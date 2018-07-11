@@ -70,7 +70,7 @@ public class GenerateMapper extends GenerateBase {
         StringBuilder sbValue = new StringBuilder();
         fields.stream().forEach(field -> {
             sbKey.append("`" + field.getName() + "`").append(",");
-            sbValue.append("#{").append(field.getName()).append("}").append(",");
+            sbValue.append("#{").append(NameUtil.fieldName(field.getName())).append("}").append(",");
         });
         if (sbKey.length() <= 0) {
             throw new GenerateException("表[" + table + "]字段不能为空");

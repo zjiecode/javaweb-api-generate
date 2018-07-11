@@ -22,7 +22,7 @@ buildscript {
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:2.0.1.RELEASE"
-        classpath 'com.zjiecode:javaweb-api-generate:0.0.10'//生成代码用的插件，生成代码以后可以删除
+        classpath 'com.zjiecode:javaweb-api-generate:0.0.11'//生成代码用的插件，生成代码以后可以删除
     }
 }
 
