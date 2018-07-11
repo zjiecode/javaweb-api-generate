@@ -52,7 +52,10 @@ public class GenerateController extends GenerateBase {
     //生成插入数据的接口
     private void insertMethod() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("insert");
-        builder.addParameter(beanClassName, table);
+        //参数验证的注解
+        AnnotationSpec.Builder beanAnno = AnnotationSpec.builder(ClassName.bestGuess("javax.validation.Valid"));
+        ParameterSpec.Builder beanParams = ParameterSpec.builder(beanClassName, table).addAnnotation(beanAnno.build());
+        builder.addParameter(beanParams.build());
         builder.addModifiers(Modifier.PUBLIC);
         builder.returns(getReturnType(beanClassName));
         builder.addStatement("return $T.getSuccess(service.insert($L))", resultClassName, table);
