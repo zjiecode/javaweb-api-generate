@@ -58,7 +58,14 @@ public class GenerateController extends GenerateBase {
         builder.addParameter(beanParams.build());
         builder.addModifiers(Modifier.PUBLIC);
         builder.returns(getReturnType(beanClassName));
-        builder.addStatement("return $T.getSuccess(service.insert($L))", resultClassName, table);
+        builder.addStatement("$L = service.insert($L)", table, table);
+        CodeBlock.Builder codeBuilder = CodeBlock.builder();
+        codeBuilder.beginControlFlow("if ($L == null)", table);
+        codeBuilder.addStatement("return $T.getBizFail(\"创建失败\")", resultClassName);
+        codeBuilder.nextControlFlow("else");
+        codeBuilder.addStatement("return $T.getSuccess($L)", resultClassName, table);
+        codeBuilder.endControlFlow();
+        builder.addCode(codeBuilder.build());
         //post路由注解
         AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.PostMapping"));
         controllerAnno.addMember("value", "\"/\"");
@@ -71,7 +78,15 @@ public class GenerateController extends GenerateBase {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("delete");
         builder.returns(getReturnType(ClassName.BOOLEAN.box()));
         builder.addModifiers(Modifier.PUBLIC);
-        builder.addStatement("return $T.getSuccess(service.delete(id))", resultClassName);
+        builder.addStatement("boolean delete = service.delete(id)");
+        CodeBlock.Builder codeBuilder = CodeBlock.builder();
+        codeBuilder.beginControlFlow("if (delete)");
+        codeBuilder.addStatement("return $T.getSuccess(null)", resultClassName);
+        codeBuilder.nextControlFlow("else");
+        codeBuilder.addStatement("return $T.getBizFail(\"数据不存在或者已经被删除\")", resultClassName);
+        codeBuilder.endControlFlow();
+        builder.addCode(codeBuilder.build());
+
         //delete路由注解
         AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.DeleteMapping"));
         controllerAnno.addMember("value", "\"/{id}\"");
@@ -98,7 +113,14 @@ public class GenerateController extends GenerateBase {
             }
         });
         builder.addStatement("$L.setId(id)", table);
-        builder.addStatement("return $T.getSuccess(service.update($L))", resultClassName, table);
+        builder.addStatement("boolean update = service.update($L)", table);
+        CodeBlock.Builder codeBuilder = CodeBlock.builder();
+        codeBuilder.beginControlFlow("if (update)");
+        codeBuilder.addStatement("return $T.getSuccess(true)", resultClassName);
+        codeBuilder.nextControlFlow("else");
+        codeBuilder.addStatement("return $T.getBizFail(\"更新失败或数据不存在\")", resultClassName);
+        codeBuilder.endControlFlow();
+        builder.addCode(codeBuilder.build());
 
         //put路由注解
         AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.PutMapping"));
