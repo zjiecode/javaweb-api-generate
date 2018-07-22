@@ -5,7 +5,9 @@ import com.zjiecode.web.generator.bean.FieldBean;
 import com.zjiecode.web.generator.utils.NameUtil;
 
 import javax.lang.model.element.Modifier;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -37,9 +39,9 @@ public class GenerateController extends GenerateBase {
         insertMethod();
         deleteMethod();
         updateMethod();
-        findByIdMethod();
+        findMethod();
         findAll();
-        findAllByPage();
+        findByIdMethod();
         count();
         return this;
     }
@@ -68,7 +70,7 @@ public class GenerateController extends GenerateBase {
         builder.addCode(codeBuilder.build());
         //post路由注解
         AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.PostMapping"));
-        controllerAnno.addMember("value", "\"/\"");
+        controllerAnno.addMember("value", "\"\"");
         builder.addAnnotation(controllerAnno.build());
         classBuilder.addMethod(builder.build());
     }
@@ -76,25 +78,37 @@ public class GenerateController extends GenerateBase {
     //生成删除数据的接口
     private void deleteMethod() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("delete");
-        builder.returns(getReturnType(ClassName.BOOLEAN.box()));
+        builder.returns(resultClassName);
         builder.addModifiers(Modifier.PUBLIC);
-        builder.addStatement("boolean delete = service.delete(id)");
         CodeBlock.Builder codeBuilder = CodeBlock.builder();
-        codeBuilder.beginControlFlow("if (delete)");
-        codeBuilder.addStatement("return $T.getSuccess(null)", resultClassName);
-        codeBuilder.nextControlFlow("else");
-        codeBuilder.addStatement("return $T.getBizFail(\"数据不存在或者已经被删除\")", resultClassName);
+        codeBuilder.beginControlFlow("if (ids != null) ");
+        codeBuilder.addStatement("$T map = new $T()", Map.class, HashMap.class);
+        codeBuilder.addStatement("$T[] arr = ids.split(\",\")", String.class);
+        codeBuilder.addStatement("boolean result = true");
+        codeBuilder.addStatement("boolean completeOne = false");
+        codeBuilder.beginControlFlow("for ($T id : arr)", String.class);
+        codeBuilder.addStatement("boolean delete = service.delete($T.valueOf(id))", Integer.class);
+        codeBuilder.addStatement("map.put(id, delete)");
+        codeBuilder.addStatement("result = result && delete");
+        codeBuilder.addStatement("completeOne = delete || completeOne");
         codeBuilder.endControlFlow();
+        codeBuilder.beginControlFlow("if (result)");
+        codeBuilder.addStatement("return new $T($T.SUCCESS, \"删除成功\")", resultClassName, ClassName.bestGuess(basePackage + ".base.result.ResultCode"));
+        codeBuilder.nextControlFlow(" else if (!completeOne) ");
+        codeBuilder.addStatement("return $T.getBizFail(\"不存在或已经被删除\")", resultClassName);
+        codeBuilder.nextControlFlow("else");
+        codeBuilder.addStatement("return new $T($T.BIZ_FAIL, \"部分删除失败\", map)", resultClassName, ClassName.bestGuess(basePackage + ".base.result.ResultCode"));
+        codeBuilder.endControlFlow();
+        codeBuilder.endControlFlow();
+        codeBuilder.addStatement("return $T.getBizFail(\"删除id不能为空\")", resultClassName);
         builder.addCode(codeBuilder.build());
 
         //delete路由注解
         AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.DeleteMapping"));
-        controllerAnno.addMember("value", "\"/{id}\"");
+        controllerAnno.addMember("value", "\"\"");
         builder.addAnnotation(controllerAnno.build());
         //函数参数注解
-        AnnotationSpec.Builder pathAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.PathVariable"));
-        pathAnno.addMember("value", "\"id\"");
-        ParameterSpec.Builder idParams = ParameterSpec.builder(Integer.class, "id").addAnnotation(pathAnno.build());
+        ParameterSpec.Builder idParams = ParameterSpec.builder(String.class, "ids");
         builder.addParameter(idParams.build());
         classBuilder.addMethod(builder.build());
     }
@@ -112,7 +126,9 @@ public class GenerateController extends GenerateBase {
                 return;
             }
         });
-        builder.addStatement("$L.setId(id)", table);
+        builder.beginControlFlow("if (user.getId() == null || user.getId() == 0)");
+        builder.addStatement("return $L.getBizFail(\"请提供需要更新的记录id\")", resultClassName);
+        builder.nextControlFlow("else");
         builder.addStatement("boolean update = service.update($L)", table);
         CodeBlock.Builder codeBuilder = CodeBlock.builder();
         codeBuilder.beginControlFlow("if (update)");
@@ -120,22 +136,40 @@ public class GenerateController extends GenerateBase {
         codeBuilder.nextControlFlow("else");
         codeBuilder.addStatement("return $T.getBizFail(\"更新失败或数据不存在\")", resultClassName);
         codeBuilder.endControlFlow();
+        codeBuilder.endControlFlow();
         builder.addCode(codeBuilder.build());
 
         //put路由注解
         AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.PutMapping"));
-        controllerAnno.addMember("value", "\"/{id}\"");
+        controllerAnno.addMember("value", "\"\"");
         builder.addAnnotation(controllerAnno.build());
         //函数参数注解
-        AnnotationSpec.Builder pathAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.PathVariable"));
-        pathAnno.addMember("value", "\"id\"");
-        ParameterSpec.Builder idParams = ParameterSpec.builder(Integer.class, "id").addAnnotation(pathAnno.build());
+        ParameterSpec.Builder idParams = ParameterSpec.builder(beanClassName, table);
         builder.addParameter(idParams.build());
-        builder.addParameter(beanClassName, table);
         classBuilder.addMethod(builder.build());
     }
 
-    //根据id查询记录
+    //分页列表查询
+    private void findMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("find");
+        builder.returns(resultClassName);
+        builder.addModifiers(Modifier.PUBLIC);
+        builder.addStatement("return $T.getSuccess(service.find(user, pageIndex, pageSize))", resultClassName);
+        //get路由注解
+        AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.GetMapping"));
+        controllerAnno.addMember("value", "\"\"");
+        builder.addAnnotation(controllerAnno.build());
+        //函数参数注解
+        ParameterSpec.Builder beanParams = ParameterSpec.builder(beanClassName, table);
+        ParameterSpec.Builder pageIndexParams = ParameterSpec.builder(Integer.class, "pageIndex");
+        ParameterSpec.Builder pageSizeParams = ParameterSpec.builder(Integer.class, "pageSize");
+        builder.addParameter(beanParams.build());
+        builder.addParameter(pageIndexParams.build());
+        builder.addParameter(pageSizeParams.build());
+        classBuilder.addMethod(builder.build());
+    }
+
+    //根据id查询详情
     private void findByIdMethod() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("findById");
         builder.returns(getReturnType(beanClassName));
@@ -143,12 +177,10 @@ public class GenerateController extends GenerateBase {
         builder.addStatement("return $T.getSuccess(service.findById(id))", resultClassName);
         //get路由注解
         AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.GetMapping"));
-        controllerAnno.addMember("value", "\"/{id}\"");
+        controllerAnno.addMember("value", "\"/detail\"");
         builder.addAnnotation(controllerAnno.build());
         //函数参数注解
-        AnnotationSpec.Builder pathAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.PathVariable"));
-        pathAnno.addMember("value", "\"id\"");
-        ParameterSpec.Builder idParams = ParameterSpec.builder(Integer.class, "id").addAnnotation(pathAnno.build());
+        ParameterSpec.Builder idParams = ParameterSpec.builder(Integer.class, "id");
         builder.addParameter(idParams.build());
         classBuilder.addMethod(builder.build());
     }
@@ -162,29 +194,6 @@ public class GenerateController extends GenerateBase {
         //get路由注解
         AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.GetMapping"));
         controllerAnno.addMember("value", "\"/all\"");
-        builder.addAnnotation(controllerAnno.build());
-        classBuilder.addMethod(builder.build());
-    }
-
-    //分页查询
-    private void findAllByPage() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("findAllByPage");
-        builder.addModifiers(Modifier.PUBLIC);
-        builder.returns(getReturnType(ParameterizedTypeName.get(ClassName.get(List.class), beanClassName)));
-        //函数参数注解
-        AnnotationSpec.Builder offsetAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.PathVariable"));
-        offsetAnno.addMember("value", "\"pageIndex\"");
-        ParameterSpec.Builder idParams = ParameterSpec.builder(Integer.class, "pageIndex").addAnnotation(offsetAnno.build());
-        builder.addParameter(idParams.build());
-        //函数参数注解
-        AnnotationSpec.Builder lengthAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.PathVariable"));
-        lengthAnno.addMember("value", "\"pageSize\"");
-        ParameterSpec.Builder lengthParams = ParameterSpec.builder(Integer.class, "pageSize").addAnnotation(lengthAnno.build());
-        builder.addParameter(lengthParams.build());
-        builder.addStatement("return $T.getSuccess(service.findAllByPage(pageIndex,pageSize))", resultClassName);
-        //get路由注解
-        AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.GetMapping"));
-        controllerAnno.addMember("value", "\"/{pageIndex}/{pageSize}\"");
         builder.addAnnotation(controllerAnno.build());
         classBuilder.addMethod(builder.build());
     }

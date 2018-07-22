@@ -18,7 +18,12 @@ public class GenerateSqlProvider extends GenerateBase {
     }
 
     //添加常见的增删改查的接口
-    public GenerateSqlProvider generate() {
+    public void generate() {
+        generateUpdate();
+        generateFind();
+    }
+
+    private void generateUpdate() {
         MethodSpec.Builder updateBuilder = MethodSpec.methodBuilder("update");
         updateBuilder.addParameter(beanClassName, table);
         updateBuilder.addException(Exception.class);
@@ -46,6 +51,51 @@ public class GenerateSqlProvider extends GenerateBase {
         updateBuilder.addStatement("return sb.toString()");
         updateBuilder.addModifiers(Modifier.PUBLIC);
         classBuilder.addMethod(updateBuilder.build());
-        return this;
+    }
+
+    private void generateFind() {
+        MethodSpec.Builder findBuilder = MethodSpec.methodBuilder("find");
+        findBuilder.addModifiers(Modifier.PUBLIC);
+        findBuilder.addParameter(beanClassName, table);
+        findBuilder.addParameter(Integer.class, "pageIndex");
+        findBuilder.addParameter(Integer.class, "pageSize");
+        findBuilder.addException(Exception.class);
+        findBuilder.returns(String.class);
+        findBuilder.addStatement("$T sb = new $T()", StringBuilder.class, StringBuilder.class);
+        fields.stream().forEach(field -> {
+            findBuilder.beginControlFlow("if (null!=$L.get$L())", table, NameUtil.className(field.getName()))
+                    .addStatement("sb.append(\" and id = #{arg0.id}\")", NameUtil.fieldName(field.getName()))
+                    .endControlFlow();
+        });
+        findBuilder.beginControlFlow("if (sb.length() != 0)");
+        findBuilder.addStatement("sb.delete(0, 5)");
+        findBuilder.addStatement("sb.insert(0, \" where \")");
+        findBuilder.endControlFlow();
+
+        findBuilder.beginControlFlow("if (pageIndex == null || pageIndex == 0)");
+        findBuilder.addStatement("pageIndex = 1");
+        findBuilder.endControlFlow();
+
+        findBuilder.beginControlFlow("if (pageSize == null || pageSize == 0)");
+        findBuilder.addStatement("pageSize = 20");
+        findBuilder.endControlFlow();
+
+        findBuilder.addStatement("sb.append(\" limit \")");
+        findBuilder.addStatement("sb.append((pageIndex - 1) * pageSize)");
+        findBuilder.addStatement("sb.append(\",\")");
+        findBuilder.addStatement("sb.append(pageSize)");
+
+
+        findBuilder.addStatement("$T fields = new $T()", StringBuilder.class, StringBuilder.class);
+        findBuilder.addStatement("fields.append(\"SELECT \")");
+        fields.stream().forEach(field -> {
+            findBuilder.addStatement("fields.append(\" `$L` as $L\")", field.getName(), NameUtil.fieldName(field.getName()));
+        });
+
+        findBuilder.addStatement("String sql = fields.toString() + sb.toString()");
+        findBuilder.addStatement("return sql");
+
+
+        classBuilder.addMethod(findBuilder.build());
     }
 }

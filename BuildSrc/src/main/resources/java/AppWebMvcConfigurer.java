@@ -106,6 +106,7 @@ public class AppWebMvcConfigurer implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins("*")
                 .allowedHeaders("*")
+                .allowCredentials(true)
                 .allowedMethods("*");
     }
 
@@ -159,6 +160,8 @@ public class AppWebMvcConfigurer implements WebMvcConfigurer {
     private void responseResult(HttpServletResponse response, Result result) {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-type", "application/json;charset=UTF-8");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Origin", "*");
         response.setStatus(200);
         try {
             ObjectMapper mapper = new ObjectMapper();
