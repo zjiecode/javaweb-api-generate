@@ -126,7 +126,7 @@ public class GenerateController extends GenerateBase {
                 return;
             }
         });
-        builder.beginControlFlow("if (user.getId() == null || user.getId() == 0)");
+        builder.beginControlFlow("if ($L.getId() == null || $L.getId() == 0)", table, table);
         builder.addStatement("return $L.getBizFail(\"请提供需要更新的记录id\")", resultClassName);
         builder.nextControlFlow("else");
         builder.addStatement("boolean update = service.update($L)", table);
@@ -154,7 +154,7 @@ public class GenerateController extends GenerateBase {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("find");
         builder.returns(resultClassName);
         builder.addModifiers(Modifier.PUBLIC);
-        builder.addStatement("return $T.getSuccess(service.find(user, pageIndex, pageSize))", resultClassName);
+        builder.addStatement("return $T.getSuccess(service.find($L, pageIndex, pageSize))", resultClassName, table);
         //get路由注解
         AnnotationSpec.Builder controllerAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.GetMapping"));
         controllerAnno.addMember("value", "\"\"");
