@@ -88,10 +88,12 @@ public class GenerateSqlProvider extends GenerateBase {
 
         findBuilder.addStatement("$T fields = new $T()", StringBuilder.class, StringBuilder.class);
         findBuilder.addStatement("fields.append(\"SELECT \")");
-        fields.stream().forEach(field -> {
-            findBuilder.addStatement("fields.append(\" `$L` as $L\")", field.getName(), NameUtil.fieldName(field.getName()));
-        });
 
+        for (int i = 0; i < fields.size(); i++) {
+            FieldBean field = fields.get(i);
+            findBuilder.addStatement("fields.append(\" `$L` as $L" + ((i < fields.size() - 1) ? "," : "") + "\")", field.getName(), NameUtil.fieldName(field.getName()));
+        }
+        findBuilder.addStatement("fields.append(\" from $L\")", table);
         findBuilder.addStatement("String sql = fields.toString() + sb.toString()");
         findBuilder.addStatement("return sql");
 

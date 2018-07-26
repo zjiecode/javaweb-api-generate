@@ -101,10 +101,15 @@ public class GenerateService extends GenerateBase {
         builder.addParameter(ParameterSpec.builder(beanClassName, table).build());
         builder.addParameter(ParameterSpec.builder(Integer.class, "pageIndex").build());
         builder.addParameter(ParameterSpec.builder(Integer.class, "pageSize").build());
-        builder.beginControlFlow("if(pageIndex < 1)");
+        builder.beginControlFlow("if(pageIndex==null || pageIndex < 1)");
         builder.addStatement("pageIndex=1");
         builder.endControlFlow();
-        builder.addStatement("$T<$T> records = mapper.find($L,(pageIndex - 1) * pageSize, pageSize)", List.class,beanClassName, table);
+
+        builder.beginControlFlow("if(pageSize==null || pageSize < 1)");
+        builder.addStatement("pageSize=20");
+        builder.endControlFlow();
+
+        builder.addStatement("$T<$T> records = mapper.find($L,(pageIndex - 1) * pageSize, pageSize)", List.class, beanClassName, table);
         builder.addStatement("return new $T(mapper.count(), pageIndex, records)", ClassName.bestGuess(basePackage + ".base.Pagination"));
         classBuilder.addMethod(builder.build());
     }
