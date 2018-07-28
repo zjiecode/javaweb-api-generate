@@ -5,6 +5,8 @@ import ${package}.base.exception.AppException;
 import ${package}.base.exception.BizException;
 import ${package}.base.result.Result;
 import ${package}.base.result.ResultCode;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -29,7 +32,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 /**
  * 应用程序配置，包括配置拦截器，异常等；
  */
@@ -129,9 +131,14 @@ public class AppWebMvcConfigurer implements WebMvcConfigurer {
                 result = new Result(ResultCode.NOT_FOUND, "接口[(" + request.getMethod() + ")" + request.getRequestURI() + "]不存在");
                 responseResult(response, result);
                 logger.warn(result.toString());
-            } else if (ex instanceof BindException) {
+            } else if (ex instanceof BindException || ex instanceof MethodArgumentNotValidException) {
                 //参数不合法
-                List<ObjectError> errors = ((BindException) ex).getAllErrors();
+                List<ObjectError> errors;
+                if (ex instanceof BindException) {
+                    errors = ((BindException) ex).getAllErrors();
+                } else {
+                    errors = ((MethodArgumentNotValidException) ex).getBindingResult().getAllErrors();
+                }
                 if (!errors.isEmpty()) {
                     result = new Result(ResultCode.BIZ_FAIL, errors.get(0).getDefaultMessage());
                 } else {

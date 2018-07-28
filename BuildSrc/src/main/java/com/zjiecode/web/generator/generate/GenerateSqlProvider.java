@@ -47,7 +47,7 @@ public class GenerateSqlProvider extends GenerateBase {
         });
         updateBuilder.addStatement("sb.append(\" where id=#{id}\")");
         updateBuilder.addStatement("sb.deleteCharAt(0)");
-        updateBuilder.addStatement("sb.insert(0, \"update user set \")");
+        updateBuilder.addStatement("sb.insert(0, \"update $L set \")",table);
         updateBuilder.addStatement("return sb.toString()");
         updateBuilder.addModifiers(Modifier.PUBLIC);
         classBuilder.addMethod(updateBuilder.build());
@@ -64,7 +64,7 @@ public class GenerateSqlProvider extends GenerateBase {
         findBuilder.addStatement("$T sb = new $T()", StringBuilder.class, StringBuilder.class);
         fields.stream().forEach(field -> {
             findBuilder.beginControlFlow("if (null!=$L.get$L())", table, NameUtil.className(field.getName()))
-                    .addStatement("sb.append(\" and id = #{arg0.id}\")", NameUtil.fieldName(field.getName()))
+                    .addStatement("sb.append(\" and $L = #{arg0.$L}\")", field.getName(),NameUtil.fieldName(field.getName()))
                     .endControlFlow();
         });
         findBuilder.beginControlFlow("if (sb.length() != 0)");

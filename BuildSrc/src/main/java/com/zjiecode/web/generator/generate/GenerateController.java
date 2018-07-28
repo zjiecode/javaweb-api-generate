@@ -5,6 +5,7 @@ import com.zjiecode.web.generator.bean.FieldBean;
 import com.zjiecode.web.generator.utils.NameUtil;
 
 import javax.lang.model.element.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,10 @@ public class GenerateController extends GenerateBase {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("insert");
         //参数验证的注解
         AnnotationSpec.Builder beanAnno = AnnotationSpec.builder(ClassName.bestGuess("javax.validation.Valid"));
-        ParameterSpec.Builder beanParams = ParameterSpec.builder(beanClassName, table).addAnnotation(beanAnno.build());
+        AnnotationSpec.Builder requestBodyAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.RequestBody"));
+        ParameterSpec.Builder beanParams = ParameterSpec.builder(beanClassName, table)
+                .addAnnotation(beanAnno.build())
+                .addAnnotation(requestBodyAnno.build());
         builder.addParameter(beanParams.build());
         builder.addModifiers(Modifier.PUBLIC);
         builder.returns(getReturnType(beanClassName));
@@ -81,23 +85,24 @@ public class GenerateController extends GenerateBase {
         builder.returns(resultClassName);
         builder.addModifiers(Modifier.PUBLIC);
         CodeBlock.Builder codeBuilder = CodeBlock.builder();
-        codeBuilder.beginControlFlow("if (ids != null) ");
-        codeBuilder.addStatement("$T map = new $T()", Map.class, HashMap.class);
-        codeBuilder.addStatement("$T[] arr = ids.split(\",\")", String.class);
+        codeBuilder.beginControlFlow("if (ids != null && !ids.isEmpty())");
+        codeBuilder.addStatement("$T<$T> failIds = new $T<>()", List.class, Integer.class, ArrayList.class);
         codeBuilder.addStatement("boolean result = true");
         codeBuilder.addStatement("boolean completeOne = false");
-        codeBuilder.beginControlFlow("for ($T id : arr)", String.class);
-        codeBuilder.addStatement("boolean delete = service.delete($T.valueOf(id))", Integer.class);
-        codeBuilder.addStatement("map.put(id, delete)");
+        codeBuilder.beginControlFlow("for ($T id : ids)", Integer.class);
+        codeBuilder.addStatement("boolean delete = service.delete(id)");
+        codeBuilder.beginControlFlow("if (!delete)");
+        codeBuilder.addStatement(" failIds.add(id)");
+        codeBuilder.endControlFlow();
         codeBuilder.addStatement("result = result && delete");
         codeBuilder.addStatement("completeOne = delete || completeOne");
         codeBuilder.endControlFlow();
         codeBuilder.beginControlFlow("if (result)");
-        codeBuilder.addStatement("return new $T($T.SUCCESS, \"删除成功\")", resultClassName, ClassName.bestGuess(basePackage + ".base.result.ResultCode"));
+        codeBuilder.addStatement("return new $T($T.SUCCESS, \"删除成功\", ids.size())", resultClassName, ClassName.bestGuess(basePackage + ".base.result.ResultCode"));
         codeBuilder.nextControlFlow(" else if (!completeOne) ");
         codeBuilder.addStatement("return $T.getBizFail(\"不存在或已经被删除\")", resultClassName);
         codeBuilder.nextControlFlow("else");
-        codeBuilder.addStatement("return new $T($T.BIZ_FAIL, \"部分删除失败\", map)", resultClassName, ClassName.bestGuess(basePackage + ".base.result.ResultCode"));
+        codeBuilder.addStatement("return new $T($T.SUCCESS, \"部分删除失败\", failIds)", resultClassName, ClassName.bestGuess(basePackage + ".base.result.ResultCode"));
         codeBuilder.endControlFlow();
         codeBuilder.endControlFlow();
         codeBuilder.addStatement("return $T.getBizFail(\"删除id不能为空\")", resultClassName);
@@ -108,7 +113,9 @@ public class GenerateController extends GenerateBase {
         controllerAnno.addMember("value", "\"\"");
         builder.addAnnotation(controllerAnno.build());
         //函数参数注解
-        ParameterSpec.Builder idParams = ParameterSpec.builder(String.class, "ids");
+        ParameterSpec.Builder idParams = ParameterSpec.builder(ParameterizedTypeName.get(List.class, Integer.class), "ids");
+        AnnotationSpec.Builder requestBodyAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.RequestBody"));
+        idParams.addAnnotation(requestBodyAnno.build());
         builder.addParameter(idParams.build());
         classBuilder.addMethod(builder.build());
     }
@@ -127,7 +134,7 @@ public class GenerateController extends GenerateBase {
             }
         });
         builder.beginControlFlow("if ($L.getId() == null || $L.getId() == 0)", table, table);
-        builder.addStatement("return $L.getBizFail(\"请提供需要更新的记录id\")", resultClassName);
+        builder.addStatement("return $T.getBizFail(\"请提供需要更新的记录id\")", resultClassName);
         builder.nextControlFlow("else");
         builder.addStatement("boolean update = service.update($L)", table);
         CodeBlock.Builder codeBuilder = CodeBlock.builder();
@@ -145,6 +152,8 @@ public class GenerateController extends GenerateBase {
         builder.addAnnotation(controllerAnno.build());
         //函数参数注解
         ParameterSpec.Builder idParams = ParameterSpec.builder(beanClassName, table);
+        AnnotationSpec.Builder requestBodyAnno = AnnotationSpec.builder(ClassName.bestGuess("org.springframework.web.bind.annotation.RequestBody"));
+        idParams.addAnnotation(requestBodyAnno.build());
         builder.addParameter(idParams.build());
         classBuilder.addMethod(builder.build());
     }

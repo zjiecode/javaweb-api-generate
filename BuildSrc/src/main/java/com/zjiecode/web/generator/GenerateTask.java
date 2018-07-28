@@ -74,9 +74,9 @@ public class GenerateTask extends DefaultTask {
             String extra = rs.getString("EXTRA");
             String type = rs.getString("type");
             int length = rs.getInt("length");
-            fields.add(new FieldBean(col, comment, type, length, "NO".equalsIgnoreCase(canNull), "PRI".equalsIgnoreCase(columnKey), "auto_increment".equalsIgnoreCase(extra)));
+            fields.add(new FieldBean(col, comment, type, length, "YES".equalsIgnoreCase(canNull), "PRI".equalsIgnoreCase(columnKey), "auto_increment".equalsIgnoreCase(extra)));
         }
-        //生成的文件，放在biz包里面
+//        生成的文件，放在biz包里面
         generate(table, fields, config.getBasePackage());
     }
 

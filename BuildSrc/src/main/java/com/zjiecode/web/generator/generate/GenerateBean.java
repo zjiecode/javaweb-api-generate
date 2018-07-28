@@ -49,7 +49,7 @@ public class GenerateBean extends GenerateBase {
                 fieldBuilder.addAnnotation(AotuIncAnnoBuilder.build());
             }
             //不能为空的注解
-            if (field.isCanNull() && !"id".equals(field.getName())) {
+            if (!field.isCanNull() && !"id".equals(field.getName())) {
                 AnnotationSpec.Builder notNullAnnoBuilder = AnnotationSpec.builder(ClassName.bestGuess("javax.validation.constraints.NotNull"));
                 //如果有注释，就取注释，不然，就取字段名
                 String name = field.isCommentEmpty() ? field.getName() : field.getComment();
