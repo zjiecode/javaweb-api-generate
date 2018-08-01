@@ -54,19 +54,19 @@ public class AppWebMvcConfigurer implements WebMvcConfigurer {
                 return true;
             }
         });
-        //添加签名验证
-        registry.addInterceptor(new HandlerInterceptor() {
-            @Override
-            public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-                if (!validateSign(request)) {
-                    Result result = new Result(ResultCode.SIGN_FAIL, "[(" + request.getMethod() + ")" + request.getRequestURI() + "]非法请求");
-                    responseResult(response, result);
-                    logger.warn(result.toString());
-                    return false;
-                }
-                return true;
-            }
-        });
+//        //添加签名验证
+//        registry.addInterceptor(new HandlerInterceptor() {
+//            @Override
+//            public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+//                if (!validateSign(request)) {
+//                    Result result = new Result(ResultCode.SIGN_FAIL, "[(" + request.getMethod() + ")" + request.getRequestURI() + "]非法请求");
+//                    responseResult(response, result);
+//                    logger.warn(result.toString());
+//                    return false;
+//                }
+//                return true;
+//            }
+//        });
     }
 
     /**
