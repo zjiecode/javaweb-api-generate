@@ -43,7 +43,7 @@ public class GenerateMapper extends GenerateBase {
         updateMethod();
         findByIdMethod();
         findAll();
-        findAllByPage();
+        find();
         count();
         return this;
     }
@@ -70,7 +70,7 @@ public class GenerateMapper extends GenerateBase {
         StringBuilder sbValue = new StringBuilder();
         fields.stream().forEach(field -> {
             sbKey.append("`" + field.getName() + "`").append(",");
-            sbValue.append("#{").append(field.getName()).append("}").append(",");
+            sbValue.append("#{").append(NameUtil.fieldName(field.getName())).append("}").append(",");
         });
         if (sbKey.length() <= 0) {
             throw new GenerateException("表[" + table + "]字段不能为空");
@@ -138,16 +138,18 @@ public class GenerateMapper extends GenerateBase {
         classBuilder.addMethod(builder.build());
     }
 
-    //分页查询
-    private void findAllByPage() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("findAllByPage");
+    //分页代条件查询
+    private void find() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("find");
+        builder.addParameter(beanClassName, table);
         builder.returns(ParameterizedTypeName.get(ClassName.get(List.class), beanClassName));
-        AnnotationSpec.Builder anno = AnnotationSpec.builder(ClassName.bestGuess("org.apache.ibatis.annotations.Select"));
-        anno.addMember("value", "\"SELECT $L FROM `$L` limit #{param1},#{param2}\"", fieldMapping, table);
-        builder.addAnnotation(anno.build());
+        AnnotationSpec.Builder upateAnno = AnnotationSpec.builder(ClassName.bestGuess("org.apache.ibatis.annotations.SelectProvider"));
+        upateAnno.addMember("type", "$T.class", sqlProviderClassName);
+        upateAnno.addMember("method", "$S", "find");
+        builder.addAnnotation(upateAnno.build());
+        builder.addParameter(ParameterSpec.builder(Integer.class, "pageIndex").build());
+        builder.addParameter(ParameterSpec.builder(Integer.class, "pageSize").build());
         builder.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
-        builder.addParameter(ParameterSpec.builder(Integer.class, "offset").build());
-        builder.addParameter(ParameterSpec.builder(Integer.class, "length").build());
         classBuilder.addMethod(builder.build());
     }
 

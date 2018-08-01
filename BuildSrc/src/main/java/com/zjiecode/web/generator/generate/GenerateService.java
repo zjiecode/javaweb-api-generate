@@ -74,7 +74,7 @@ public class GenerateService extends GenerateBase {
         classBuilder.addMethod(builder.build());
     }
 
-    //根据id查询记录
+    //根据id查询记录详情
     private void findByIdMethod() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("findById");
         builder.addParameter(Integer.class, "id");
@@ -95,18 +95,25 @@ public class GenerateService extends GenerateBase {
 
     //分页查询
     private void findAllByPage() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("findAllByPage");
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("find");
         builder.addModifiers(Modifier.PUBLIC);
         builder.returns(ParameterizedTypeName.get(ClassName.bestGuess(basePackage + ".base.Pagination"), ParameterizedTypeName.get(ClassName.get(List.class), beanClassName)));
+        builder.addParameter(ParameterSpec.builder(beanClassName, table).build());
         builder.addParameter(ParameterSpec.builder(Integer.class, "pageIndex").build());
         builder.addParameter(ParameterSpec.builder(Integer.class, "pageSize").build());
-        builder.beginControlFlow("if(pageIndex < 1)");
+        builder.beginControlFlow("if(pageIndex==null || pageIndex < 1)");
         builder.addStatement("pageIndex=1");
         builder.endControlFlow();
-        builder.addStatement("$T records = mapper.findAllByPage((pageIndex - 1) * pageSize, pageSize)", List.class);
+
+        builder.beginControlFlow("if(pageSize==null || pageSize < 1)");
+        builder.addStatement("pageSize=20");
+        builder.endControlFlow();
+
+        builder.addStatement("$T<$T> records = mapper.find($L,(pageIndex - 1) * pageSize, pageSize)", List.class, beanClassName, table);
         builder.addStatement("return new $T(mapper.count(), pageIndex, records)", ClassName.bestGuess(basePackage + ".base.Pagination"));
         classBuilder.addMethod(builder.build());
     }
+
 
     //查询存在的记录条数
     private void count() {
