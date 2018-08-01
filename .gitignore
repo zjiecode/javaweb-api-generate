@@ -2,7 +2,10 @@
 /build/
 /BuildSrc/out/
 /BuildSrc/build/
-/TestGradlePlugin/
+/TestGradlePlugin/out/
+/TestGradlePlugin/build/
+/TestGradlePlugin/src/
+/TestGradlePlugin/src-bak/
 !gradle/wrapper/gradle-wrapper.jar
 repo
 .DS_Store
