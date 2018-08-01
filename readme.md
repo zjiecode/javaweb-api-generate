@@ -7,7 +7,6 @@
 [![license](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Build Status](https://travis-ci.org/zjiecode/javaweb-api-generate.svg?branch=master)](https://travis-ci.org/zjiecode/javaweb-api-generate)
 ![version](https://img.shields.io/badge/version-0.0.13-brightgreen.svg?longCache=true&style=flat)
->>>>>>> master
 
 ### 简介
 
@@ -122,7 +121,7 @@ bash <(curl -s -S -L https://github.com/zjiecode/javaweb-api-generate/raw/master
 
 #### 请求方式（数据格式）
 默认的post提交数据方式是：x-www-form-urlencoded，也就是采用a-1&b=2这种
-如果你使用json的方式提交数据，可以在controller上注解@ResquestBody即可。
+如果你使用json的方式提交数据，可以在字段上注解@ResquestBody即可。
 
 ### Pull Request
 任何问题，欢迎PR，PR请提交到`develop`分支,感谢.
