@@ -4,7 +4,6 @@ apply plugin: 'maven'//maven插件，用于发布到本地仓库调试
 
 //版本信息
 def version="0.0.13"
-
 buildscript {
     repositories {
         jcenter()

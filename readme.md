@@ -7,6 +7,7 @@
 [![license](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Build Status](https://travis-ci.org/zjiecode/javaweb-api-generate.svg?branch=master)](https://travis-ci.org/zjiecode/javaweb-api-generate)
 ![version](https://img.shields.io/badge/version-0.0.13-brightgreen.svg?longCache=true&style=flat)
+>>>>>>> master
 
 ### 简介
 
