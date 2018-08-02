@@ -3,7 +3,11 @@ apply plugin: 'com.novoda.bintray-release' //用户发布到bintray
 apply plugin: 'maven'//maven插件，用于发布到本地仓库调试
 
 //版本信息
+<<<<<<< HEAD
 def version="0.0.14"
+=======
+def version="0.0.13"
+>>>>>>> 54aeb465cc5a34151426602d4c4257e651d9094b
 buildscript {
     repositories {
         jcenter()
