@@ -7,7 +7,7 @@ config {
     dbName 'pangu-db-dev'
     dbUser 'root'
     dbPassword '123456'
-    basePackage 'com.smjcco.java.api'
+    basePackage 'com.zjiecode.java.api'
 }
 
 //以上是生成的配置信息，生成以后可以删除
@@ -22,7 +22,7 @@ buildscript {
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:2.0.1.RELEASE"
-        classpath 'com.zjiecode:javaweb-api-generate:0.0.13'//生成代码用的插件，生成代码以后可以删除
+//        classpath 'com.zjiecode:javaweb-api-generate:0.0.14'//生成代码用的插件，生成代码以后可以删除
     }
 }
 

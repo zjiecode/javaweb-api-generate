@@ -60,8 +60,10 @@ public class GenerateBase {
             javaFile.writeTo(PathUtil.SRC_ROOT_DIR);
             String fullClass = javaFile.toJavaFileObject().getName()
                     .replace('/', '.')
-                    .replace('\\', '.')
-                    .replace(".java", "");
+                    .replace('\\', '.');
+            if (fullClass.endsWith(".java")) {
+                fullClass = fullClass.substring(0, fullClass.length() - 5);
+            }
             System.out.println("[" + table + "]" + type + "生成成功:" + fullClass);
             return ClassName.bestGuess(fullClass);
         } catch (Exception e) {
