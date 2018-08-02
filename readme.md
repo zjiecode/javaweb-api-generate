@@ -76,6 +76,8 @@ bash <(curl -s -S -L https://github.com/zjiecode/javaweb-api-generate/raw/master
 
 到这里，就添加完了插件，刷新一下gradle，你会看到多出来一个`generateCode`任务，运行就可以了。
 
+**【注意】生成后，请删除本插件，不然，重复生成，会覆盖掉你修改的代码**
+
 ### 生成的网站工程介绍
 
 #### 接口
